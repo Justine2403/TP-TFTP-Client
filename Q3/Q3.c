@@ -67,11 +67,7 @@ void getaddr(char* host){
         print_message(error);
         exit(EXIT_FAILURE);
     }
-
-    freeaddrinfo(res); // free the linked list
 }
-
-
 int main(int argc, char *argv[]) {
     // Check if the correct number of arguments is provided
     if (argc != 4) {

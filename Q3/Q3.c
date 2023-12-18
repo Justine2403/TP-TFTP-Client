@@ -63,7 +63,7 @@ void getaddr(char* host){
     int sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
     if (sockfd == -1) {
         char error[MAX_SIZE];
-        snprintf(error, sizeof(error), "ERROR: socket: %s\n", strerror(errno));
+        snprintf(error, sizeof(error), "ERROR: socket: %s\n", strerror(error));
         print_message(error);
         exit(EXIT_FAILURE);
     }

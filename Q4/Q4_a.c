@@ -59,6 +59,31 @@ void getaddr(char* host){
 
     print_message(message); //  print the IP address
 
+
+    //reserve socket connexion for the server
+    int sockfd = socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+    if (sockfd == -1) {
+        char error[MAX_SIZE];
+        snprintf(error, sizeof(error), "ERROR: socket: %s\n", strerror(errno));
+        print_message(error);
+        exit(EXIT_FAILURE);
+    }
+    // Build RRQ packet
+    char rrq_buffer[MAX_BUFFER_SIZE];
+    rrq_buffer[0] = 0x00;  // Opcode (2 bytes)
+    rrq_buffer[1] = 0x01;
+    strcpy(rrq_buffer + 2, argv[3]);  // Filename
+    strcpy(rrq_buffer + 2 + strlen(argv[3]) + 1, RRQ_MODE);  // 1 byte of zeros + the mode
+    int rrq_length = 2 + strlen(rrq_buffer) + 1 + strlen(argv[3]) + 1;
+
+    // Send the RRQ packet
+    if (sendto(sockfd, rrq_buffer, rrq_length, 0, res->ai_addr, res->ai_addrlen) == -1) {
+        perror(SEND_ERROR);
+        close(sockfd);
+        freeaddrinfo(res);
+        exit(EXIT_FAILURE);
+        }
+
     freeaddrinfo(res); // free the linked list
 }
 

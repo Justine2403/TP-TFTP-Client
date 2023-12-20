@@ -24,7 +24,6 @@ int print_message(char *output) {
 }
 
 void gettftp(char* host, char* port, char* file) {
-    // Implement TFTP download logic here
     char message[MAX_SIZE];
     snprintf(message, sizeof(message), "Uploading file '%s' to TFTP server at '%s' on port '%s'\n", file, host, port); 
     print_message(message);

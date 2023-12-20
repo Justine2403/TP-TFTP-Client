@@ -10,9 +10,7 @@
 #define MAX_SIZE 516
 #define RRQ_MODE "octet"
 
-#define ARGUMENTS_ERROR "Error, you must specify 3 arguments."
-#define SERVER_ADDR_ERROR "Error trying to get the server address."
-#define SOCKET_ERROR "Socket creation error"
+
 #define SEND_ERROR "Error sending data"
 #define RECEIVE_ERROR "Error receiving data"
 
@@ -24,7 +22,6 @@ int print_message(char *output) {
 }
 
 void gettftp(char* host, char* port, char* file) {
-    // Implement TFTP download logic here
     char message[MAX_SIZE];
     snprintf(message, sizeof(message), "Uploading file '%s' to TFTP server at '%s' on port '%s'\n", file, host, port); 
     print_message(message);
@@ -98,8 +95,9 @@ void getaddr(char* host, char* port, char* file){
         freeaddrinfo(res);
         exit(EXIT_FAILURE);
         }
-   //SINGLE DAT PACKET
-    // Create a buffer to hold the received data
+
+    //SINGLE DAT PACKET
+    //Create a buffer to hold the received data
     char buffer[MAX_SIZE];
     socklen_t fromlen = sizeof(struct sockaddr_storage);
 
@@ -128,6 +126,7 @@ void getaddr(char* host, char* port, char* file){
         perror("sendto");
         exit(EXIT_FAILURE);
     }
+
     //MULTIPLE DAT PACKETS
     /// Receive the DAT packets and send ACKs
     int block_number = 1; // Initial block number
@@ -148,7 +147,7 @@ void getaddr(char* host, char* port, char* file){
         }
 
         // Extract the block number and data
-        uint16_t received_block_number = ntohs(*(uint16_t *)(buffer + 2));
+        int received_block_number = ntohs(*(uint16_t *)(buffer + 2));
         char *data = buffer + 4;
 
         // Check if the received block number is as expected

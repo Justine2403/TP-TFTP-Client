@@ -203,7 +203,7 @@ int main(int argc, char *argv[]) {
         print_message(usage);
         exit(EXIT_FAILURE);
     }
-    getaddr(argv[1], argv[2], argv[3]);
     gettftp(argv[1], argv[2], argv[3]);
+    print_success(argv[1], argv[2], argv[3]);
     return 0;
 }

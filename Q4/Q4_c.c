@@ -21,13 +21,13 @@ int print_message(char *output) {
 	write(1, output, strlen(output)); 	
 }
 
-void gettftp(char* host, char* port, char* file) {
+void print_success(char* host, char* port, char* file) {
     char message[MAX_SIZE];
     snprintf(message, sizeof(message), "Uploading file '%s' to TFTP server at '%s' on port '%s'\n", file, host, port); 
     print_message(message);
 }
 
-void getaddr(char* host, char* port, char* file){
+void gettftp(char* host, char* port, char* file){
     //initializing hints with zeros
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_INET; // AF_INET or AF_INET6 to force version

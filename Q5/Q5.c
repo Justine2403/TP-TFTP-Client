@@ -8,7 +8,7 @@
 #include <arpa/inet.h>  
 #include <errno.h>  
 #define MAX_SIZE 516
-#define RRQ_MODE "octet"
+#define WRQ_MODE "octet"
 
 
 #define SEND_ERROR "Error sending data"
@@ -85,8 +85,8 @@ void putaddr(char* host, char* port, char* file){
     int file_len = strlen(file);
     
     // Add the transfer mode to the WRQ buffer
-    strcpy(wrq_buffer + 2 + file_len + 1, RRQ_MODE);
-    int wrq_length = 2 + file_len + 1 + strlen(RRQ_MODE) + 1;
+    strcpy(wrq_buffer + 2 + file_len + 1, WRQ_MODE);
+    int wrq_length = 2 + file_len + 1 + strlen(WRQ_MODE) + 1;
 
     // Send the WRQ request
     if (sendto(sockfd, wrq_buffer, wrq_length, 0, res->ai_addr, res->ai_addrlen) == -1) {
@@ -95,6 +95,82 @@ void putaddr(char* host, char* port, char* file){
         freeaddrinfo(res);
         exit(EXIT_FAILURE);
     }
+    //SEND SINGLE DATA PACKET
+        // Read the file to be sent
+    FILE *input_file = fopen(file, "rb");
+    if (input_file == NULL) {
+        perror("Error opening file");
+        close(sockfd);
+        freeaddrinfo(res);
+        exit(EXIT_FAILURE);
+    }
+
+    // Read the file into a buffer
+    char data_buffer[MAX_SIZE - 4];
+    size_t bytes_read;
+
+    
+    // SEND MULTIPLE DATA PACKETS
+    while ((bytes_read = fread(data_buffer, 1, sizeof(data_buffer), input_file)) > 0) {
+        // Build DAT packet
+        char dat_buffer[MAX_SIZE];
+        dat_buffer[0] = 0;
+        dat_buffer[1] = 3;
+        uint16_t block_number = 1; // Update block number accordingly
+
+        // Copy block number to the buffer
+        memcpy(dat_buffer + 2, &block_number, sizeof(uint16_t));
+
+        // Copy data to the buffer
+        memcpy(dat_buffer + 4, data_buffer, bytes_read);
+
+        // Send the DAT packet
+        if (sendto(sockfd, dat_buffer, 4 + bytes_read, 0, res->ai_addr, res->ai_addrlen) == -1) {
+            perror(SEND_ERROR);
+            close(sockfd);
+            fclose(input_file);
+            freeaddrinfo(res);
+            exit(EXIT_FAILURE);
+        }
+
+        // Receive the ACK packet
+        char ack_buffer[4];
+        if (recvfrom(sockfd, ack_buffer, sizeof(ack_buffer), 0, NULL, NULL) == -1) {
+            perror(RECEIVE_ERROR);
+            close(sockfd);
+            fclose(input_file);
+            freeaddrinfo(res);
+            exit(EXIT_FAILURE);
+        }
+
+        // Check the opcode in the ACK packet
+        if (ack_buffer[0] != 0 || ack_buffer[1] != 4) {
+            fprintf(stderr, "Received packet is not an ACK packet\n");
+            close(sockfd);
+            fclose(input_file);
+            freeaddrinfo(res);
+            exit(EXIT_FAILURE);
+        }
+
+        // Extract the block number from the ACK packet
+        uint16_t received_block_number = ntohs(*(uint16_t *)(ack_buffer + 2));
+
+        // Check if the received block number matches the sent block number
+        if (received_block_number != block_number) {
+            fprintf(stderr, "Received ACK for incorrect block number\n");
+            close(sockfd);
+            fclose(input_file);
+            freeaddrinfo(res);
+            exit(EXIT_FAILURE);
+        }
+
+        // Increment the block number for the next packet
+        block_number++;
+    }
+
+    // Close the input file
+    fclose(input_file);
+
     freeaddrinfo(res); // free the linked-list
 }
 

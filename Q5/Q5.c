@@ -20,14 +20,14 @@ int print_message(char *output) {
     write(1, output, strlen(output));   
 }
 
-void puttftp(char* host, char* port, char* file) {
+void print_success(char* host, char* port, char* file) {
     // Implement TFTP upload logic here
     char message[MAX_SIZE];
     snprintf(message, sizeof(message), "Uploading file '%s' to TFTP server at '%s' on port '%s'\n", file, host, port); 
     print_message(message);
 }
 
-void putaddr(char* host, char* port, char* file){
+void puttftp(char* host, char* port, char* file){
     //initializing hints with zeros
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_INET; // AF_INET or AF_INET6 to force version
@@ -185,6 +185,7 @@ int main(int argc, char *argv[]) {
 
     // Call the upload function with provided arguments
     puttftp(argv[1], argv[2], argv[3]);
+    print_success(argv[1], argv[2], argv[3]);
 
     return 0;
 }
